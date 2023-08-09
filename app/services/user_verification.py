@@ -5,12 +5,12 @@ from typing import Annotated
 from fastapi import Depends
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
+# from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
 
 from app.services.pswd_hasher import verify_password, hash_password
-from app.services.users_management import get_user
+# from app.services.users_management import get_user
 from starlette.status import HTTP_404_NOT_FOUND
 from decouple import config
 
@@ -30,21 +30,23 @@ class UserNotFound(Exception):
     status_code = HTTP_404_NOT_FOUND
 
 
-async def authenticate_user(db_ses: Annotated[AsyncSession, Depends("connector.get_session")],
-                            user_uuid: str, password: str) -> bool:
-    try:
-        user = await get_user(db_ses, user_uuid)
-        if not verify_password(password=password, hashed_password=user.password):
-            return False
-        return user
-    except AttributeError as e:
-        raise UserNotFound
+# async def authenticate_user(db_ses: Annotated[AsyncSession, Depends("connector.get_session")],
+#                             user_uuid: str, password: str) -> bool:
+#     try:
+#         user = await get_user(db_ses, user_uuid)
+#         if not verify_password(password=password, hashed_password=user.password):
+#             return False
+#         return user
+#     except AttributeError as e:
+#         raise UserNotFound
 
 
 def create_jwt_token(user_uuid: str):
     payload = {
         "sub": user_uuid,
-        "exp": datetime.utcnow() + timedelta(days=config("ACCESS_TOKEN_EXPIRE_DAYS"))
+        "exp": datetime.utcnow() + timedelta(
+            days=int(config("ACCESS_TOKEN_EXPIRE_DAYS"))
+        )
     }
     encoded_jwt = jwt.encode(
         payload, SECRET, algorithm=config("ALGORITHM")
@@ -65,7 +67,8 @@ async def authorize_user(token: Annotated[str, Depends(oauth2_scheme)]) -> str:
 
 
 # TODO
-# Create models
+# Create models!!!!!
+# Test user_verification
 # Create endpoints for user registration, login
 # Create connector, db engine, session, init alembic
 # Test JWT creation and validation

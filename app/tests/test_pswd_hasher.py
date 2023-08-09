@@ -12,14 +12,21 @@ async def test_hash_password(pswd: str = SAMPLE_PSWD):
     assert h_password
 
 
-@pytest.mark.asyncio
-async def test_verify_password_ok():
-    assert verify_password(SAMPLE_PSWD, SAMPLE_HASH)
+# TODO
+# think about this test class, how make appropriate report where everything
+# is green (right now test passes as expected but display is not good)
 
 
-@pytest.mark.asyncio
-async def test_verify_password_wrong_password(w_pswd: str = "r@nd123"):
-    assert not verify_password(w_pswd, SAMPLE_HASH)
+@pytest.mark.parametrize("pswd", ["r@nd123", "r@nd", "Rand123", "r@nD123",
+                                  "R@nd123"])
+class TestVerifyPassword:
+    @pytest.mark.asyncio
+    async def test_verify_password_ok(self, pswd: str):
+        assert verify_password(pswd, SAMPLE_HASH)
+
+    @pytest.mark.asyncio
+    async def test_verify_password_wrong_password(self, pswd: str):
+        assert not verify_password(pswd, SAMPLE_HASH)
 
 
 @pytest.mark.asyncio
