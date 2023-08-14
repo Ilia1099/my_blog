@@ -5,3 +5,4 @@ __pycache__
 .env
 public_key.pem
 private_key.pem
+.db_env

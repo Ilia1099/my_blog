@@ -1,3 +1,4 @@
+from typing import Type
 from app.databases.config import Config
 from asyncpg import Connection
 from uuid import uuid4
@@ -22,9 +23,10 @@ class SQLAlchemyConnection(Connection):
         return f'__asyncpg_{prefix}_{uuid4()}__'
 
 
-def engine_factory(db_url: Config):
+def engine_factory(db_url: Type[Config]):
+    c = db_url()
     return create_async_engine(
-        url=db_url.db_dsn(),
+        url=c.db_dsn(),
         echo=True,
         connect_args={
             'statement_cache_size': 0,  # required by asyncpg

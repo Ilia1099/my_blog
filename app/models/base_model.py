@@ -1,7 +1,7 @@
 from sqlalchemy import String, MetaData, DateTime
 from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import mapped_column, DeclarativeBase
 
 
-class MyBaseModel(DeclarativeBase):
-    pass
+Base = declarative_base()

@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import SecretStr
+from pydantic import SecretStr, PostgresDsn
 
 
 class Config(BaseSettings):
@@ -8,10 +8,8 @@ class Config(BaseSettings):
     db_user: str
     db_password: SecretStr
     db_port: str
-    db_path: str
-    db_query: str
-    db_fragment: str
-    model_config = SettingsConfigDict(env_file=".db_env")
+    db_name: str
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     def db_dsn(self, protocol: str = None):
         protocol = protocol or self.db_protocol
@@ -25,6 +23,6 @@ class Config(BaseSettings):
         url += self.db_host
         if self.db_port:
             url += ':' + self.db_port
-        if self.db_path:
-            url += f"/{self.db_path}"
+        if self.db_name:
+            url += f"/{self.db_name}"
         return url

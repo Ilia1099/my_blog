@@ -1,10 +1,14 @@
 from fastapi import FastAPI
 from starlette import status
+from app.databases.config import Config
+from app.databases.connection import Session, engine_factory, get_session
 from starlette.responses import JSONResponse
 
-from services.user_verification import UserNotFound
+from app.services.user_verification import UserNotFound
 
 app = FastAPI()
+
+Session.configure(bind=engine_factory(Config))
 
 
 @app.get("/")
