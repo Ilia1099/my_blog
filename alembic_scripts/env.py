@@ -1,20 +1,17 @@
 import asyncio
+import importlib
 from logging.config import fileConfig
 
 from sqlalchemy import pool, engine_from_config
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config, AsyncEngine
+
 from app.models.posts import Posts, LikesForPost, DislikesForPost
 from app.models.users import Users
 from app.models.base_model import Base
 from alembic import context
 from app.databases.config import Config
 
-# import sys
-# import os
-#
-# folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-# sys.path.insert(0, folder)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -30,7 +27,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
-URL = Config().db_dsn()
+url = Config().db_dsn()
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -50,7 +47,7 @@ def run_migrations_offline() -> None:
 
     """
     context.configure(
-        url=URL,
+        url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -72,9 +69,11 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
 
     """
-
+    conf = config.get_section(config.config_ini_section)
+    conf['sqlalchemy.url'] = str(url)
     connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        conf,
+        # config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
@@ -85,26 +84,13 @@ async def run_async_migrations() -> None:
     await connectable.dispose()
 
 
-async def run_migrations_online() -> None:
+def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
 
-    conf = config.get_section(config.config_ini_section)
-    conf['sqlalchemy.url'] = str(URL)
-    connectable = AsyncEngine(
-        engine_from_config(
-            conf,
-            prefix="sqlalchemy.",
-            poolclass=pool.NullPool,
-            future=True,
-        )
-    )
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
-
-    await connectable.dispose()
+    asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    asyncio.run(run_migrations_online())
+    run_migrations_online()
