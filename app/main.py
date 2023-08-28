@@ -1,14 +1,15 @@
 from fastapi import FastAPI
-from starlette import status
 from app.databases.config import Config
 from app.databases.connection import Session, engine_factory, get_session
 from starlette.responses import JSONResponse
+from app.api.routes import users
+# from app.services.user_verification import UserNotFound
 
-from app.services.user_verification import UserNotFound
-
+eng = engine_factory(Config)
+Session.configure(bind=eng)
 app = FastAPI()
 
-Session.configure(bind=engine_factory(Config))
+app.include_router(users.router)
 
 
 @app.get("/")
@@ -21,6 +22,6 @@ async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
 
-@app.exception_handler(UserNotFound)
-async def forbidden_exception_handler(request, exc):
-    return JSONResponse(status_code=exc.status_code, content={"detail": "user was not found"})
+# @app.exception_handler(UserNotFound)
+# async def forbidden_exception_handler(request, exc):
+#     return JSONResponse(status_code=exc.status_code, content={"detail": "user was not found"})

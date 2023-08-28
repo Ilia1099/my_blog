@@ -2,9 +2,11 @@ version: '3'
 
 volumes:
   my_blog:
+  test_my_blog:
 
 services:
   app:
+    container_name: my_blog_app
     build:
       context: .
       dockerfile: Dockerfile
@@ -34,6 +36,26 @@ services:
     command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     volumes:
       - my_blog:/var/lib/postgresql/data
+
+  test_db:
+    container_name: test_blog_db
+    image: postgres:15.3-bullseye
+    ports:
+      - "5436:5432"
+    networks:
+      - my-blog-network
+    env_file:
+      - .env.test
+    environment:
+      - DB_PROTOCOL="postgresql+asyncpg"
+      - POSTGRES_USER=test_me
+      - POSTGRES_PASSWORD=testpass123
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5436
+      - POSTGRES_DB=test_my_blog_db
+    command: [ "postgres", "-c", "log_statement=all", "-c", "log_destination=stderr" ]
+    volumes:
+      - test_my_blog:/var/lib/postgresql/data
 
 networks:
   my-blog-network:

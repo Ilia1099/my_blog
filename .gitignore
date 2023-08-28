@@ -6,3 +6,4 @@ __pycache__
 public_key.pem
 private_key.pem
 .db_env
+/.test_env

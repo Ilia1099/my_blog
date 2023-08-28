@@ -9,7 +9,7 @@ RUN apt-get install nano -y
 RUN pip3 install --no-cache-dir --upgrade -r /opt/src/requirements.txt
 
 COPY ./app /opt/src/app/
-COPY ./alembic_scripts ./alembic_scripts/
+COPY app/alembic_scripts ./alembic_scripts/
 COPY ./.gitignore .
 COPY ./alembic.ini .
 COPY ./.env .

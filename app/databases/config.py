@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import SecretStr, PostgresDsn
+from typing_extensions import Literal
+from pydantic import SecretStr, PostgresDsn, Field
 
 
 class Config(BaseSettings):
