@@ -1,22 +1,16 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Annotated
-
 from fastapi import Depends
-from jose import jwt, JWTError
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import jwt
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-# from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
-
 from app.models.users import Users
 from app.serializers.users_serializer import UserInfo
-from app.services.pswd_hasher import verify_password, hash_password
-# from app.services.users_management import get_user
-from starlette.status import HTTP_404_NOT_FOUND
-from app.main import get_session
+from app.services.pswd_hasher import verify_password
 from decouple import config
 
 from app.services.users_management import get_user
@@ -27,29 +21,63 @@ SECRET = config("SECRET")
 
 
 credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"})
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"}
+)
+
 data_exception = HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            "check data"
-        )
+    status.HTTP_400_BAD_REQUEST,
+    detail="check data"
+)
+
 failed_login = HTTPException(
-                status.HTTP_401_UNAUTHORIZED,
-                detail="check login or password")
+    status.HTTP_401_UNAUTHORIZED,
+    detail="check login or password"
+)
+expired_jwt = HTTPException(
+    status.HTTP_401_UNAUTHORIZED,
+    detail="jwt expired, login to receive new one"
+)
+
+authorization_not_completed = HTTPException(
+    status.HTTP_401_UNAUTHORIZED,
+    detail="authorization for operation wasn't completed, check login of "
+           "requester for correctness"
+)
+
+user_not_found = HTTPException(
+    status.HTTP_404_NOT_FOUND,
+    detail="certain user wasn't found"
+)
 
 
 async def authenticate_user(
         db_ses: AsyncSession,
-        login: str, password: str) -> Users:
+        login: str, password: str) -> Users | bool:
+    """
+    a coroutine for user authentication, password wasn't verified raises
+    exception
+    :param db_ses: yielded db session instance
+    :param login: user's login received from request
+    :param password: user's password received from request
+    :return: user instance
+    """
     user = await get_user(db_ses, login)
+    if not user:
+        return False
     if verify_password(password=password, hashed_password=user.password):
         return user
     else:
         raise failed_login
 
 
-def create_jwt_token(user_uuid: str):
+def create_jwt_token(user_uuid: str) -> str:
+    """
+    a function which generates JWT for certain user
+    :param user_uuid: user's uuid
+    :return: JWT
+    """
     payload = {
         "sub": user_uuid,
         "exp": datetime.utcnow() + timedelta(
@@ -62,13 +90,25 @@ def create_jwt_token(user_uuid: str):
     return encoded_jwt
 
 
-async def authorize_user(token: Annotated[str, Depends(oauth2_scheme)]) -> str:
+async def validate_jwt(token: Annotated[str, Depends(oauth2_scheme)]) -> str:
+    """
+    a coroutine which decodes received JWT if successful returns user's uuid
+    :param token: a JWT
+    :return: uuid
+    """
     payload = jwt.decode(token, SECRET, algorithms=[config("ALGORITHM")])
     user_uuid = payload.get("sub")
     return user_uuid
 
 
-def grant_jwt(user: UserInfo, new_user: bool = True):
+def grant_jwt(user: UserInfo, new_user: bool = True) -> JSONResponse:
+    """
+    a function which generates JSONResponse as a finishing stage of user
+    authentication or registration
+    :param user: user instance
+    :param new_user: a flag, if not new user doesn't add info about
+    successful creation
+    """
     user_id = f"{user.user_uuid}"
     token = f"{create_jwt_token(user_id)}"
     content = {
@@ -83,10 +123,16 @@ def grant_jwt(user: UserInfo, new_user: bool = True):
     return response
 
 
-# TODO
-# Create models!!!!!
-# Test user_verification
-# Create endpoints for user registration, login
-# Create connector, db engine, session, init alembic
-# Test JWT creation and validation
-
+async def authorize_user(db_ses: AsyncSession, token: str):
+    """
+    a coroutine which authenticates user which makes request; existences,
+    permissions
+    :param db_ses: AsyncSession instance
+    :param token: JWT token
+    :return: None
+    """
+    users_uid = await validate_jwt(token)
+    chk_exists = await get_user(db_ses=db_ses, user_uuid=users_uid)
+    if not chk_exists:
+        raise authorization_not_completed
+    

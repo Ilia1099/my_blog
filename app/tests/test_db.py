@@ -17,6 +17,6 @@ Session.configure(bind=eng)
 
 
 test_app = TestClient(app)
-# test_app = app
+run_test_app = app
 
 

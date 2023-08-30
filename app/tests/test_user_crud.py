@@ -33,7 +33,8 @@ fixtures = [
 ]
 
 
-@pytest.fixture
+@pytest.fixture  # necessary for pytest, to make possible testing async
+# endpoints
 def anyio_backend():
     return 'asyncio'
 
@@ -60,3 +61,14 @@ def test_register_fail():
         }
     )
     assert response.status_code == 409
+
+
+def test_user_delete_ok():
+    tkn = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNDc1ZjQzMy0wYzI0LTQ5ZWItODhlNi1iMWRlYzA2NTEyOWYiLCJleHAiOjE2OTM4MzUwOTd9.w8O8aSrmmdIY0igre_4KBo5X84YAJUwSbFRo5J-Jmrs"
+    response = test_app.delete(
+        url="/users/ilya",
+        headers={"Authorization": f"Bearer {tkn}"}
+    )
+    assert response.status_code == 200
+
+

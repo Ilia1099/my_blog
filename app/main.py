@@ -1,12 +1,14 @@
 from fastapi import FastAPI
+from fastapi.security import OAuth2PasswordBearer
+
 from app.databases.config import Config
-from app.databases.connection import Session, engine_factory, get_session
-from starlette.responses import JSONResponse
+from app.databases.connection import Session, engine_factory
 from app.api.routes import users
-# from app.services.user_verification import UserNotFound
 
 eng = engine_factory(Config)
 Session.configure(bind=eng)
+
+
 app = FastAPI()
 
 app.include_router(users.router)
