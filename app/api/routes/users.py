@@ -1,16 +1,15 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, \
-    HTTPBearer
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, ExpiredSignatureError
 from jose.exceptions import JWTClaimsError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.databases.connection import get_session
 from app.serializers.users_serializer import UserInfo
-from app.services.users_management import (user_registration, user_exists,
-                                           get_user, usr_deletion)
-from app.services.user_verification import (authenticate_user, validate_jwt,
+from app.services.users_management import (user_registration, usr_deletion,
+                                           data_caused_integrity_error)
+from app.services.user_verification import (authenticate_user,
                                             credentials_exception,
                                             grant_jwt,
                                             data_exception, expired_jwt,
@@ -44,8 +43,8 @@ async def register_new_user(
             credentials=user_data, db_ses=db_ses)
         await db_ses.commit()
         return grant_jwt(result)
-    except IntegrityError:
-        raise user_exists
+    except IntegrityError as e:
+        raise data_caused_integrity_error(e.orig.args[0])
     except ValueError:
         raise data_exception
 

@@ -1,17 +1,13 @@
 import asyncio
-import importlib
 from logging.config import fileConfig
 
 from sqlalchemy import pool, engine_from_config
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config, AsyncEngine
 
-from app.models.posts import Posts, LikesForPost, DislikesForPost
-from app.models.users import Users
-from app.models.base_model import Base
+import app.models as mod
 from alembic import context
 from app.databases.config import Config
-from app.tests.test_db import TestConf
 
 
 config = context.config
@@ -19,7 +15,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+target_metadata = mod.Base.metadata
 url = Config().db_dsn()
 
 
@@ -62,7 +58,6 @@ async def run_async_migrations() -> None:
     conf['sqlalchemy.url'] = str(url)
     connectable = async_engine_from_config(
         conf,
-        # config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

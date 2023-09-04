@@ -1,4 +1,4 @@
-from app.databases.connection import engine_factory, Session, get_session
+from app.databases.connection import engine_factory, Session
 from app.databases.config import Config, SettingsConfigDict
 import app.models as mod
 import asyncio

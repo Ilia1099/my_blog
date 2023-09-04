@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import select, delete, update, or_
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -7,12 +7,21 @@ from app.serializers.users_serializer import UserInfo
 from sqlalchemy.orm import aliased
 from app.models.users import Users
 from app.services.pswd_hasher import hash_password
+from app.services.exception_tools import get_integrity_violation_key_name
 
 
-user_exists = HTTPException(
-    status.HTTP_409_CONFLICT,
-    detail="user name is not free"
-        )
+def data_caused_integrity_error(ex_arg: str) -> HTTPException:
+    """
+    function which generates HTTPException instance for cases when db
+    IntegrityError exception is raised
+    :param ex_arg: exception's detail message
+    :return: instance of HTTPException
+    """
+    column_name = get_integrity_violation_key_name(ex_arg)
+    return HTTPException(
+        status.HTTP_409_CONFLICT,
+        detail=f"{column_name} is not free, try another"
+    )
 
 
 async def user_registration(credentials: UserInfo, db_ses: AsyncSession):
@@ -25,7 +34,8 @@ async def user_registration(credentials: UserInfo, db_ses: AsyncSession):
     try:
         user = Users(
             user_login=credentials.user_login,
-            password=hash_password(credentials.password.get_secret_value())
+            password=hash_password(credentials.password.get_secret_value()),
+            email=credentials.email
         )
         db_ses.add(user)
         return user

@@ -19,10 +19,12 @@ class UserInfo(BaseModel):
     user_login: str
     user_uuid: Any = None
     password: SecretStr
+    email: str
 
     @classmethod
     def from_dict(cls, question: dict):
         return cls(
             user_login=question.get("user_login"),
-            password=question.get("user_password")
+            password=question.get("user_password"),
+            email=question.get("email")
         )

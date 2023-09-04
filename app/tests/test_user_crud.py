@@ -6,7 +6,8 @@ fixtures = [
     {
         "json": {
             "user_login": "ilya",
-            "password": "qw@rty1234"
+            "password": "qw@rty1234",
+            "user_email": "email@email.com"
         },
         "assertion": {
             "status_code": 201
@@ -15,7 +16,8 @@ fixtures = [
     {
         "json": {
             "user_login": "ilya2",
-            "password": "qw@rty12345"
+            "password": "qw@rty12345",
+            "user_email": "email2@email.com"
         },
         "assertion": {
             "status_code": 201
@@ -24,7 +26,8 @@ fixtures = [
     {
         "json": {
             "user_login": "ilya3",
-            "password": "qw@rty123456"
+            "password": "qw@rty123456",
+            "user_email": "email3@email.com"
         },
         "assertion": {
             "status_code": 201
@@ -46,7 +49,8 @@ def test_register_ok():
                 url="/users",
                 json={
                     "user_login": ts_cs["json"]["user_login"],
-                    "password": ts_cs["json"]["password"]
+                    "password": ts_cs["json"]["password"],
+                    "email": ts_cs["json"]["user_email"]
                 }
             )
             assert response.status_code == ts_cs["assertion"]["status_code"]
