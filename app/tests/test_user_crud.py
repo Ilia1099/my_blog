@@ -68,7 +68,7 @@ def test_register_fail():
 
 
 def test_user_delete_ok():
-    tkn = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNDc1ZjQzMy0wYzI0LTQ5ZWItODhlNi1iMWRlYzA2NTEyOWYiLCJleHAiOjE2OTM4MzUwOTd9.w8O8aSrmmdIY0igre_4KBo5X84YAJUwSbFRo5J-Jmrs"
+    tkn = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZTk1YTBiMi04MGNjLTQ1YzctYTU0NS03OGRiODM2MWFhNGMiLCJleHAiOjE2OTUwMzgxODh9.4Gl-A7r4p5ogqk4kfD4kg2wq76j28oZZpH42iIovzVI"
     response = test_app.delete(
         url="/users/ilya",
         headers={"Authorization": f"Bearer {tkn}"}
@@ -76,3 +76,14 @@ def test_user_delete_ok():
     assert response.status_code == 200
 
 
+def test_user_update_ok():
+    tkn = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZTk1YTBiMi04MGNjLTQ1YzctYTU0NS03OGRiODM2MWFhNGMiLCJleHAiOjE2OTUwMzgxODh9.4Gl-A7r4p5ogqk4kfD4kg2wq76j28oZZpH42iIovzVI"
+    response = test_app.put(
+        url="/users/ilya3",
+        headers={"Authorization": f"Bearer {tkn}"},
+        json={
+            "user_login": "ilya3",
+            "password": "qw@rty123456",
+            "email": "new_email@gmail.com"
+        }
+    )

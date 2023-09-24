@@ -45,7 +45,8 @@ async def user_registration(credentials: UserInfo, db_ses: AsyncSession):
 
 
 async def get_user(
-        db_ses: AsyncSession, user_login: str = None, user_uuid: str = None):
+        db_ses: AsyncSession, user_login: str = None, user_uuid: str = None
+) -> Users | None:
     """
     coroutine for querying user in db; for searching uses either login or
     uuid, since this coroutine could be used in different situations
@@ -81,3 +82,20 @@ async def usr_deletion(login: str, db_ses: AsyncSession):
     return True
 
 
+async def usr_update(
+        user_login: str, db_ses: AsyncSession, new_data: UserInfo) \
+        -> Users | None:
+    check_exists = await get_user(db_ses, user_login=user_login)
+    if not check_exists:
+        return
+    for field in new_data.model_dump():
+        new_value = new_data.model_dump().get(field)
+        if not new_value:
+            continue
+        match field:
+            case "password":
+                new_value = hash_password(new_data.password.get_secret_value())
+            case "user_uuid":
+                continue
+        setattr(check_exists, field, new_value)
+    return check_exists

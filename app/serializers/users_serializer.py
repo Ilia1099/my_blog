@@ -16,10 +16,10 @@ class UserInfo(BaseModel):
         populate_by_name=True,
 
     )
-    user_login: str
-    user_uuid: Any = None
-    password: SecretStr
-    email: str
+    user_login: str | None
+    user_uuid: str | None = None
+    password: SecretStr | None
+    email: str | None
 
     @classmethod
     def from_dict(cls, question: dict):
@@ -28,3 +28,19 @@ class UserInfo(BaseModel):
             password=question.get("user_password"),
             email=question.get("email")
         )
+
+
+class UserLogin(BaseModel):
+    """
+    Pydantic class designed specifically for validating credentials during
+    login
+    """
+    model_config: ConfigDict = ConfigDict(
+        from_attributes=True,
+        validate_default=True,
+        extra='ignore',
+        populate_by_name=True,
+
+    )
+    user_login: str
+    password: SecretStr

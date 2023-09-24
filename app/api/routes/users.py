@@ -5,10 +5,14 @@ from jose import JWTError, ExpiredSignatureError
 from jose.exceptions import JWTClaimsError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.responses import JSONResponse
+
 from app.databases.connection import get_session
-from app.serializers.users_serializer import UserInfo
+from app.serializers.users_serializer import UserInfo, UserLogin
 from app.services.users_management import (user_registration, usr_deletion,
-                                           data_caused_integrity_error)
+                                           data_caused_integrity_error,
+                                           usr_update)
 from app.services.user_verification import (authenticate_user,
                                             credentials_exception,
                                             grant_jwt,
@@ -42,16 +46,16 @@ async def register_new_user(
         result = await user_registration(
             credentials=user_data, db_ses=db_ses)
         await db_ses.commit()
-        return grant_jwt(result)
+        return grant_jwt(user=result, st_code=201)
     except IntegrityError as e:
         raise data_caused_integrity_error(e.orig.args[0])
     except ValueError:
         raise data_exception
 
 
-@router.get("/users/login")
+@router.post("/users/login")
 async def user_login(
-        credentials: UserInfo,
+        credentials: UserLogin,
         db_ses: Annotated[AsyncSession, Depends(get_session)]
 ):
     """
@@ -69,16 +73,17 @@ async def user_login(
         )
         if not user:
             raise user_not_found
-        return grant_jwt(user, new_user=False)
+        return grant_jwt(user=user, st_code=200, new_user=False)
     except ExpiredSignatureError:
         raise expired_jwt
     except (JWTError, JWTClaimsError):
         raise credentials_exception
 
 
-@router.delete("/users/{user_login}")
+@router.delete("/users/{user_login}", status_code=200)
 async def delete_user(
-        user_login: str, token: Annotated[str, Depends(oauth2_scheme)],
+        user_login: str,
+        token: Annotated[str, Depends(oauth2_scheme)],
         db_ses: Annotated[AsyncSession, Depends(get_session)]
 ):
     """
@@ -96,12 +101,51 @@ async def delete_user(
         if not was_deleted:
             raise user_not_found
         await db_ses.commit()
+        return {"message": "successfully deleted"}
     except ExpiredSignatureError:
         raise expired_jwt
     except (JWTError, JWTClaimsError):
         raise credentials_exception
 
 
-@router.put("/users/{user_id")
-async def update_user(user_id: int):
-    ...
+@router.patch("/users/{user_login}", status_code=202)
+async def update_user(
+        user_login: str,
+        user_info: UserInfo,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        db_ses: Annotated[AsyncSession, Depends(get_session)]
+) -> dict:
+    """
+    user update endpoint, implemented via PATCH method, due to flexibility;
+    in current implementation up on success returns corresponding message
+    and the path to updated user (if permissions allow to see it; - to be
+    developed)
+    :param user_login: login of the user whose account record should be
+    updated; supposed that the process could be initialized by user himself
+    or authorized admin
+    :param user_info: new user's data
+    :param token: JWT for authorization
+    :param db_ses: database session object
+    :return: dictionary containing necessary data
+    """
+    try:
+        await authorize_user(db_ses=db_ses, token=token)
+        updated = await usr_update(
+            user_login=user_login, db_ses=db_ses, new_data=user_info)
+        if not updated:
+            raise user_not_found
+        await db_ses.commit()
+        await db_ses.refresh(updated)
+        return {
+            "message": "successfully updated",
+            "path": f"/users/{user_login}"
+        }
+    except ExpiredSignatureError:
+        raise expired_jwt
+    except IntegrityError as e:
+        raise data_caused_integrity_error(e.orig.args[0])
+    except (JWTError, JWTClaimsError):
+        raise credentials_exception
+
+# TODO
+# permissions, roles logic

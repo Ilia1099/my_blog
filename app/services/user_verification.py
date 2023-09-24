@@ -101,10 +101,14 @@ async def validate_jwt(token: Annotated[str, Depends(oauth2_scheme)]) -> str:
     return user_uuid
 
 
-def grant_jwt(user: UserInfo, new_user: bool = True) -> JSONResponse:
+def grant_jwt(st_code: int, user: UserInfo, new_user: bool = True) -> (
+        JSONResponse):
     """
     a function which generates JSONResponse as a finishing stage of user
     authentication or registration
+    :param st_code: corresponding status code, may be different if this
+    function is used during creation of a new user or authentication of
+    existing
     :param user: user instance
     :param new_user: a flag, if not new user doesn't add info about
     successful creation
@@ -118,8 +122,8 @@ def grant_jwt(user: UserInfo, new_user: bool = True) -> JSONResponse:
     }
     if new_user: content["user_created"] = new_user
     response = JSONResponse(content=content)
-    response.set_cookie(key="access_token", value=token)
-    response.status_code = 201
+    response.set_cookie(key="access_token", value=token, httponly=True)
+    response.status_code = st_code
     return response
 
 

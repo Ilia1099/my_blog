@@ -1,4 +1,5 @@
-from pydantic import ValidationError
+import pydantic
+from pydantic import ValidationError, SecretStr
 from app.serializers.users_serializer import UserInfo
 import pytest
 
@@ -10,7 +11,9 @@ def test_user_valid():
         "email": "email@email.com"
     }
     test_uinfo = UserInfo(**received_data)
-    print(test_uinfo)
+    for k in test_uinfo.model_dump():
+        print(f"Key {k}; Value {test_uinfo.model_dump().get(k)}")
+        print(k == "password")
 
 
 def test_user_not_valid():
