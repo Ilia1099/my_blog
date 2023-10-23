@@ -5,9 +5,9 @@ from app.tests.test_db import test_app
 fixtures = [
     {
         "json": {
-            "user_login": "ilya",
+            "user_login": "ilya45",
             "password": "qw@rty1234",
-            "user_email": "email@email.com"
+            "user_email": "email13@email.com"
         },
         "assertion": {
             "status_code": 201
@@ -15,9 +15,9 @@ fixtures = [
     },
     {
         "json": {
-            "user_login": "ilya2",
+            "user_login": "ilya55",
             "password": "qw@rty12345",
-            "user_email": "email2@email.com"
+            "user_email": "email224@email.com"
         },
         "assertion": {
             "status_code": 201
@@ -25,9 +25,9 @@ fixtures = [
     },
     {
         "json": {
-            "user_login": "ilya3",
+            "user_login": "ilya65",
             "password": "qw@rty123456",
-            "user_email": "email3@email.com"
+            "user_email": "email335@email.com"
         },
         "assertion": {
             "status_code": 201
@@ -46,7 +46,7 @@ def test_register_ok():
     with test_app as ac:
         for ts_cs in fixtures:
             response = ac.post(
-                url="/users",
+                url="/add_user",
                 json={
                     "user_login": ts_cs["json"]["user_login"],
                     "password": ts_cs["json"]["password"],
@@ -70,7 +70,7 @@ def test_register_fail():
 def test_user_delete_ok():
     tkn = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZTk1YTBiMi04MGNjLTQ1YzctYTU0NS03OGRiODM2MWFhNGMiLCJleHAiOjE2OTUwMzgxODh9.4Gl-A7r4p5ogqk4kfD4kg2wq76j28oZZpH42iIovzVI"
     response = test_app.delete(
-        url="/users/ilya",
+        url="/users/ilya3",
         headers={"Authorization": f"Bearer {tkn}"}
     )
     assert response.status_code == 200

@@ -10,6 +10,8 @@ from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 from app.models.users import Users
 from app.serializers.users_serializer import UserInfo
+from app.services.exception_tools import authorization_not_completed, \
+    failed_login
 from app.services.pswd_hasher import verify_password
 from decouple import config
 
@@ -20,36 +22,36 @@ secrets_path = Path(__file__).parent.parent.parent.resolve()
 SECRET = config("SECRET")
 
 
-credentials_exception = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate credentials",
-    headers={"WWW-Authenticate": "Bearer"}
-)
-
-data_exception = HTTPException(
-    status.HTTP_400_BAD_REQUEST,
-    detail="check data"
-)
-
-failed_login = HTTPException(
-    status.HTTP_401_UNAUTHORIZED,
-    detail="check login or password"
-)
-expired_jwt = HTTPException(
-    status.HTTP_401_UNAUTHORIZED,
-    detail="jwt expired, login to receive new one"
-)
-
-authorization_not_completed = HTTPException(
-    status.HTTP_401_UNAUTHORIZED,
-    detail="authorization for operation wasn't completed, check login of "
-           "requester for correctness"
-)
-
-user_not_found = HTTPException(
-    status.HTTP_404_NOT_FOUND,
-    detail="certain user wasn't found"
-)
+# credentials_exception = HTTPException(
+#     status_code=status.HTTP_401_UNAUTHORIZED,
+#     detail="Could not validate credentials",
+#     headers={"WWW-Authenticate": "Bearer"}
+# )
+#
+# data_exception = HTTPException(
+#     status.HTTP_400_BAD_REQUEST,
+#     detail="check data"
+# )
+#
+# failed_login = HTTPException(
+#     status.HTTP_401_UNAUTHORIZED,
+#     detail="check login or password"
+# )
+# expired_jwt = HTTPException(
+#     status.HTTP_401_UNAUTHORIZED,
+#     detail="jwt expired, login to receive new one"
+# )
+#
+# authorization_not_completed = HTTPException(
+#     status.HTTP_401_UNAUTHORIZED,
+#     detail="authorization for operation wasn't completed, check login of "
+#            "requester for correctness"
+# )
+#
+# user_not_found = HTTPException(
+#     status.HTTP_404_NOT_FOUND,
+#     detail="certain user wasn't found"
+# )
 
 
 async def authenticate_user(
@@ -120,7 +122,8 @@ def grant_jwt(st_code: int, user: UserInfo, new_user: bool = True) -> (
         "access_token": f"{create_jwt_token(user_id)}",
         "token_type": "bearer"
     }
-    if new_user: content["user_created"] = new_user
+    if new_user:
+        content["user_created"] = new_user
     response = JSONResponse(content=content)
     response.set_cookie(key="access_token", value=token, httponly=True)
     response.status_code = st_code

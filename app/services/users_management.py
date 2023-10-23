@@ -3,28 +3,29 @@ from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from app.serializers.users_serializer import UserInfo
-from sqlalchemy.orm import aliased
-from app.models.users import Users
+from app.serializers.users_serializer import UserInfo, UserRegData
+from sqlalchemy.orm import aliased, joinedload
+from app.models import Users
 from app.services.pswd_hasher import hash_password
 from app.services.exception_tools import get_integrity_violation_key_name
 
 
-def data_caused_integrity_error(ex_arg: str) -> HTTPException:
-    """
-    function which generates HTTPException instance for cases when db
-    IntegrityError exception is raised
-    :param ex_arg: exception's detail message
-    :return: instance of HTTPException
-    """
-    column_name = get_integrity_violation_key_name(ex_arg)
-    return HTTPException(
-        status.HTTP_409_CONFLICT,
-        detail=f"{column_name} is not free, try another"
-    )
+# def data_caused_integrity_error(ex_arg: str) -> HTTPException:
+#     """
+#     function which generates HTTPException instance for cases when db
+#     IntegrityError exception is raised
+#     :param ex_arg: exception's detail message
+#     :return: instance of HTTPException
+#     """
+#     column_name = get_integrity_violation_key_name(ex_arg)
+#     return HTTPException(
+#         status.HTTP_409_CONFLICT,
+#         detail=f"{column_name} is not free, try another"
+#     )
 
 
-async def user_registration(credentials: UserInfo, db_ses: AsyncSession):
+async def user_registration(
+        credentials: UserRegData, db_ses: AsyncSession) -> Users:
     """
     coroutine for adding new user instance into db
     :param credentials: Pydantic class with validated registration info
@@ -56,11 +57,15 @@ async def get_user(
     :return: user's instance or None
     """
     qs = aliased(Users, name="usr")
-    query = select(qs).filter(
-        or_(
-            qs.user_login == user_login,
-            qs.user_uuid == user_uuid
-        )
+    query = (
+        select(qs).
+        options(joinedload(qs.posts)).
+        filter(
+            or_(
+                qs.user_login == user_login,
+                qs.user_uuid == user_uuid
+            )
+         )
     )
 
     result = await db_ses.execute(query)

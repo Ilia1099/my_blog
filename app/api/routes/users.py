@@ -5,19 +5,16 @@ from jose import JWTError, ExpiredSignatureError
 from jose.exceptions import JWTClaimsError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
-from starlette.responses import JSONResponse
-
 from app.databases.connection import get_session
-from app.serializers.users_serializer import UserInfo, UserLogin
+from app.serializers.users_serializer import UserInfo, UserLogin, UserRegData
 from app.services.users_management import (user_registration, usr_deletion,
-                                           data_caused_integrity_error,
                                            usr_update)
-from app.services.user_verification import (authenticate_user,
-                                            credentials_exception,
-                                            grant_jwt,
-                                            data_exception, expired_jwt,
-                                            user_not_found, authorize_user)
+from app.services.user_verification import (authenticate_user, grant_jwt,
+                                            authorize_user)
+from app.services.exception_tools import (credentials_exception,
+                                          data_exception, expired_jwt,
+                                          user_not_found,
+                                          data_caused_integrity_error)
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -29,9 +26,9 @@ class ServiceError(Exception):
     pass
 
 
-@router.post("/users")
+@router.post("/add_user")
 async def register_new_user(
-        user_data: UserInfo,
+        user_data: UserRegData,
         db_ses: Annotated[AsyncSession, Depends(get_session)]
 ):
     """
@@ -43,6 +40,8 @@ async def register_new_user(
     :return: a json object which contains JWT
     """
     try:
+        print("DATA")
+        print(user_data)
         result = await user_registration(
             credentials=user_data, db_ses=db_ses)
         await db_ses.commit()

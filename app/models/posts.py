@@ -19,17 +19,28 @@ class Posts(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("users_table.user_uuid"))
     date_created: Mapped[dt] = mapped_column(default=dt.now())
     date_updated: Mapped[dt] = mapped_column(DateTime, default=func.now())
-    likes: Mapped[List["LikesForPost"]] = relationship()
-    dislikes: Mapped[List["DislikesForPost"]] = relationship()
+    user: Mapped["Users"] = relationship(back_populates="posts")
+    likes: Mapped[List["LikesForPost"]] = relationship(
+        back_populates="post")
+    dislikes: Mapped[List["DislikesForPost"]] = relationship(
+        back_populates="post")
 
 
 class LikesForPost(Base):
     __tablename__ = "likes"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    is_valid: Mapped[bool] = mapped_column()
+    date_created: Mapped[dt] = mapped_column(default=dt.now())
+    date_updated: Mapped[dt] = mapped_column(DateTime, default=func.now())
     post_id: Mapped[str] = mapped_column(ForeignKey("users_posts.post_id"))
+    post: Mapped["Posts"] = relationship(back_populates="likes")
 
 
 class DislikesForPost(Base):
     __tablename__ = "dislikes"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    is_valid: Mapped[bool] = mapped_column()
+    date_created: Mapped[dt] = mapped_column(default=dt.now())
+    date_updated: Mapped[dt] = mapped_column(DateTime, default=func.now())
     post_id: Mapped[str] = mapped_column(ForeignKey("users_posts.post_id"))
+    post: Mapped["Posts"] = relationship(back_populates="dislikes")
