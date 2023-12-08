@@ -1,6 +1,6 @@
 from app.models import Users, Posts
 from app.serializers.users_serializer import UserInfo
-from app.serializers.posts_serializer import PostData
+from app.serializers.posts_serializer import NewPostData
 
 
 def test_users_model():
@@ -29,7 +29,7 @@ def test_post_model():
         "user_id": "some-uuid-1187-0423"
     }
 
-    test_data = PostData(**body)
+    test_data = NewPostData(**body)
     new_inst = Posts(
         post_header=test_data.post_header,
         post_text=test_data.post_text,
@@ -55,7 +55,7 @@ def test_post_appending():
         "user_id": "some-uuid-1187-0423"
     }
 
-    test_post_data = PostData(**body)
+    test_post_data = NewPostData(**body)
     new_post = Posts(
         post_header=test_post_data.post_header,
         post_text=test_post_data.post_text,

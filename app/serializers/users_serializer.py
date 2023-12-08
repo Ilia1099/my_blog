@@ -18,13 +18,8 @@ class UserInfo(BaseModel):
     password: SecretStr | None
     email: str | None
 
-    @field_validator('*')
-    @classmethod
-    def check_fields_not_empty(cls, value: str):
-        if not value:
-            print(value)
-            raise ValueError(f"fields must not be null")
-        return value
+    # TODO
+    # rethink validators for fields
 
 
 class UserRegData(BaseModel):

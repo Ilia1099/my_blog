@@ -19,5 +19,6 @@ class Users(Base):
     email: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     date_created: Mapped[dt] = mapped_column(default=dt.now())
     date_updated: Mapped[dt] = mapped_column(DateTime, default=func.now())
-    posts: Mapped[List['Posts']] = relationship(back_populates="user")
-
+    posts: Mapped[List['Posts']] = relationship(
+        back_populates="user",
+        cascade="all, delete, delete-orphan")

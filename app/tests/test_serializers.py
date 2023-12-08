@@ -1,7 +1,7 @@
 import pydantic
 from pydantic import ValidationError, SecretStr
 from app.serializers.users_serializer import UserInfo
-from app.serializers.posts_serializer import PostData
+from app.serializers.posts_serializer import NewPostData
 import pytest
 
 
@@ -30,7 +30,7 @@ def test_postdata_not_valid():
             "post_text": "test",
             "user_id": ""
         }
-        print(PostData(**received_data))
+        print(NewPostData(**received_data))
 
 
 def test_postdata_valid():
@@ -39,4 +39,4 @@ def test_postdata_valid():
         "post_text": "test",
         "user_id": "f8b7e7de-1a15-468c-bb9e-cf0c4b2431de"
     }
-    print(PostData(**received_data))
+    print(NewPostData(**received_data))

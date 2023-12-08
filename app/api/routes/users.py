@@ -26,6 +26,20 @@ class ServiceError(Exception):
     pass
 
 
+@router.get("/users/{user_id}/posts")
+async def get_all_posts_per_user(
+        user_id: str,
+        db_ses: Annotated[AsyncSession, Depends(get_session)]
+):
+    """
+    a coroutine to get all posts created by certain user
+    :param user_id:
+    :param db_ses:
+    :return:
+    """
+    ...
+
+
 @router.post("/add_user")
 async def register_new_user(
         user_data: UserRegData,
