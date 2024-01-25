@@ -110,4 +110,5 @@ async def authorize_user(db_ses: AsyncSession, token: str):
     chk_exists = await get_user(db_ses=db_ses, user_uuid=users_uid)
     if not chk_exists:
         raise authorization_not_completed
+    return users_uid
     

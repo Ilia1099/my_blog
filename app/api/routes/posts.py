@@ -54,14 +54,15 @@ async def get_post(
     :param post_id: stringified id of the certain post
     :param db_ses: async session instance
     """
+    users_id = await authorize_user(db_ses=db_ses, token=token)
     posts = await select_posts(db_ses=db_ses,
-                               user_id="3ec898e5-28b3-418f-8ef0-bc6c51eb4b07",
+                               user_id=users_id,
                                post_id=post_id)
     # TODO
     # finish
 
 
-@router.post("/add_post", status_code=201)
+@router.post("/posts", status_code=201)
 async def add_post_for_user(
         token: Annotated[str, Depends(oauth2_scheme)],
         post_data: NewPostData,
@@ -88,7 +89,7 @@ async def add_post_for_user(
         raise credentials_exception
 
 
-@router.delete("/delete_post")
+@router.delete("/posts/{post_id}")
 async def delete_a_post(
         token: Annotated[str, Depends(oauth2_scheme)],
         post_id: str,
@@ -97,7 +98,7 @@ async def delete_a_post(
     ...
 
 
-@router.post("/post/add_reaction")
+@router.post("/posts/reactions")
 async def add_reaction_to_post(
         token: Annotated[str, Depends(oauth2_scheme)],
         reaction: Reaction,
@@ -106,7 +107,7 @@ async def add_reaction_to_post(
     ...
 
 
-@router.delete("/post/delete_reaction")
+@router.delete("/posts/reaction/{reaction_id}")
 async def del_reaction_from_post(
         token: Annotated[str, Depends(oauth2_scheme)],
         reaction_id: str,

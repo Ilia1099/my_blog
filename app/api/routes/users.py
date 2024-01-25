@@ -40,7 +40,7 @@ async def get_all_posts_per_user(
     ...
 
 
-@router.post("/add_user")
+@router.post("/users")
 async def register_new_user(
         user_data: UserRegData,
         db_ses: Annotated[AsyncSession, Depends(get_session)]
